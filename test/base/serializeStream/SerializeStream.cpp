@@ -275,7 +275,7 @@ BOOST_AUTO_TEST_CASE(SerializeVectorCompoundDataBinary)
 
 BOOST_AUTO_TEST_CASE(SerializeInvalidWrite)
 {
-    BOOST_CHECK_THROW(NuTo::SerializeStreamOut("/home/ME_WANTS_TO_WRITE_HERE.dat", true), NuTo::Exception);
+    BOOST_CHECK_THROW(NuTo::SerializeStreamOut("/home/FOLDER_THAT_DOES_NOT_EXIST/ME_WANTS_TO_WRITE_HERE.dat", true), NuTo::Exception);
 }
 
 BOOST_AUTO_TEST_CASE(SerializeInvalidRead)
