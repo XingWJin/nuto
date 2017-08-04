@@ -1,54 +1,43 @@
 language: cpp
 sudo: false
-
-services:
-    - docker
-
+services: docker
 dist: trusty
 
+notifications:
+    webhooks:
+        urls:
+            - "https://scalar.vector.im/api/neb/services/hooks/dHJhdmlzLWNpLyU0MFBzaXJ1cyUzQW1hdHJpeC5vcmcvJTIxZG9KWEFCclp5VVBlV0Jmb0ZYJTNBbWF0cml4Lm9yZw"
+        on_success: change  # always|never|change
+        on_failure: always
+        on_start: never
 compiler:
+    - clang
     - gcc
 env:
-    - BUILD_TYPE=Release OPENMP=FALSE COVERAGE=TRUE EXAMPLES=FALSE
+    - BUILD_TYPE=Release OPENMP=TRUE  COVERAGE=FALSE EXAMPLES=TRUE
+    - BUILD_TYPE=Release OPENMP=FALSE COVERAGE=FALSE EXAMPLES=TRUE
+    - BUILD_TYPE=Debug   OPENMP=FALSE COVERAGE=TRUE  EXAMPLES=FALSE
+matrix:
+    exclude:
+        - compiler: clang
+          env: BUILD_TYPE=Debug   OPENMP=FALSE COVERAGE=TRUE  EXAMPLES=FALSE
 before_install:
-    # https://docs.codecov.io/docs/testing-with-docker
     # request codecov to detect CI environment to pass through to docker
+    # https://docs.codecov.io/docs/testing-with-docker
     - ci_env=`bash <(curl -s https://codecov.io/env)`
     - echo $ci_env
 
     - docker pull nuto/nuto_docker:v2
-    - docker run $ci_env -itd --name docker_container -v $(pwd):/project nuto/nuto_docker:v2
-#   ALTERNATIVE: we could also clone the repo instead of mounting it with -v $(pwd):/project
-#   - docker run -itd --name docker_container phuschke/githubcppprojecttemplate:v1
-#   - docker exec docker_container git clone https://github.com/phuschke/GithubCppProjectTemplate.git /project
+    - docker run $ci_env -itd --name dock -v $(pwd):/project nuto/nuto_docker:v2
 script:
-    #- docker exec docker_container cmake --build /build
     - MODULES="-DENABLE_METAMODEL=TRUE -DENABLE_OPTIMIZE=TRUE -DENABLE_ARPACK=TRUE -DENABLE_GEOMETRYCONCRETE=TRUE -DENABLE_MPI=TRUE"
     - BUILD_OPTIONS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_OPENMP=$OPENMP -DENABLE_COVERAGE=$COVERAGE -DENABLE_EXAMPLES=$EXAMPLES $MODULES"
-    - docker exec docker_container cmake -H/project -B/build $BUILD_OPTIONS
-    - docker exec docker_container cmake --build /build --target unit -- -j2 
+    - docker exec dock mkdir build && cd build
+    - docker exec dock cmake $BUILD_OPTIONS ../project
+    - docker exec dock make -j2 unit
+    - docker exec dock make -j2
+    - docker exec dock ctest --output-on-failure
 
-    #- docker exec docker_container lcov --directory /build --capture --output-file coverage.info
-    #- docker exec docker_container lcov --remove coverage.info '/usr/*' --output-file coverage.info
-
-#before_script:
-#    - mkdir docker_container
-#    - cd docker_container
-#    - MODULES="-DENABLE_METAMODEL=TRUE -DENABLE_OPTIMIZE=TRUE -DENABLE_ARPACK=TRUE -DENABLE_GEOMETRYCONCRETE=TRUE -DENABLE_MPI=TRUE"
-#    - BUILD_OPTIONS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_OPENMP=$OPENMP -DENABLE_COVERAGE=$COVERAGE -DENABLE_EXAMPLES=$EXAMPLES $MODULES"
-#    - CXX=clang++ cmake $BUILD_OPTIONS $OPTIONS ..
-#script:
-#    - make -j2 unit
-#
 after_success:
-    # get coverage information
-    - docker exec docker_container lcov --capture --directory /build --output-file coverage.info
-    # filter out system stuff that we don't control
-    - docker exec docker_container     lcov -r coverage.info '/usr/include/*' -o coverage.info
-    # filter out external libraries
-    - EXTERNALFILES=$(pwd)/external/*
-    - docker exec docker_container     lcov -r coverage.info "$EXTERNALFILES" -o coverage.info
-
-    # upload to codecov
-    - docker exec docker_container bash <(curl -s https://codecov.io/bash) -f coverage.info
-
+    - cd ..
+    - sh scripts/upload_coverage.sh
