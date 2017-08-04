@@ -11,8 +11,13 @@ compiler:
 env:
     - BUILD_TYPE=Release OPENMP=FALSE COVERAGE=TRUE EXAMPLES=FALSE
 before_install:
+    # https://docs.codecov.io/docs/testing-with-docker
+    # request codecov to detect CI environment to pass through to docker
+    - ci_env=`bash <(curl -s https://codecov.io/env)`
+    - echo $ci_env
+
     - docker pull nuto/nuto_docker:v2
-    - docker run -itd --name docker_container -v $(pwd):/project nuto/nuto_docker:v2
+    - docker run $ci_env -itd --name docker_container -v $(pwd):/project nuto/nuto_docker:v2
 #   ALTERNATIVE: we could also clone the repo instead of mounting it with -v $(pwd):/project
 #   - docker run -itd --name docker_container phuschke/githubcppprojecttemplate:v1
 #   - docker exec docker_container git clone https://github.com/phuschke/GithubCppProjectTemplate.git /project
@@ -37,12 +42,13 @@ script:
 #
 after_success:
     # get coverage information
-    - docker exec docker_container lcov --capture --directory build --output-file coverage.info
+    - docker exec docker_container lcov --capture --directory /build --output-file coverage.info
     # filter out system stuff that we don't control
     - docker exec docker_container     lcov -r coverage.info '/usr/include/*' -o coverage.info
     # filter out external libraries
     - EXTERNALFILES=$(pwd)/external/*
     - docker exec docker_container     lcov -r coverage.info "$EXTERNALFILES" -o coverage.info
+
     # upload to codecov
     - docker exec docker_container bash <(curl -s https://codecov.io/bash) -f coverage.info
 
