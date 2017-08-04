@@ -1,6 +1,11 @@
 language: cpp
 sudo: required
+
+services:
+    - docker
+
 dist: trusty
+
 compiler:
     - clang
 env:
@@ -10,18 +15,24 @@ matrix:
         - compiler: clang
           env: BUILD_TYPE=Debug   OPENMP=FALSE COVERAGE=FALSE  EXAMPLES=FALSE
 before_install:
-    - export PATH=/home/travis/miniconda/bin:$PATH
-    - ./scripts/install_numpy.sh
-    - ./scripts/install_gmsh.sh
-    - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-    - sudo apt-get -qq update
-    - sudo apt-get install -y g++-6 clang libeigen3-dev libgcc-6-dev libiomp-dev swig3.0 doxygen python3-dev python3-numpy libboost-system1.55-dev libboost-filesystem1.55-dev libboost-test1.55-dev libboost-mpi1.55-dev libopenblas-dev libmetis-dev libmumps-seq-dev libann-dev libarpack2-dev
-    - sudo apt-get install -y lcov curl texlive-font-utils libglu1-mesa-dev
-before_script:
-    - mkdir build
-    - cd build
-    - MODULES="-DENABLE_METAMODEL=TRUE -DENABLE_OPTIMIZE=TRUE -DENABLE_ARPACK=TRUE -DENABLE_GEOMETRYCONCRETE=TRUE -DENABLE_MPI=TRUE"
-    - BUILD_OPTIONS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_OPENMP=$OPENMP -DENABLE_COVERAGE=$COVERAGE -DENABLE_EXAMPLES=$EXAMPLES $MODULES"
-    - CXX=clang++ cmake $BUILD_OPTIONS $OPTIONS ..
+    - docker pull nuto/nuto_docker:v2
+    - docker run -itd --name docker_container -v $(pwd):/project nuto/nuto_docker:v2
+#   ALTERNATIVE: we could also clone the repo instead of mounting it with -v $(pwd):/project
+#   - docker run -itd --name docker_container phuschke/githubcppprojecttemplate:v1
+#   - docker exec docker_container git clone https://github.com/phuschke/GithubCppProjectTemplate.git /project
 script:
-    - make -j2 unit
+    - docker exec docker_container cmake -H/project -B/build
+    - docker exec docker_container cmake --build /build
+    - docker exec docker_container cmake --build /build --target unit
+    #- docker exec docker_container lcov --directory /docker_container --capture --output-file coverage.info
+    #- docker exec docker_container lcov --remove coverage.info '/usr/*' --output-file coverage.info
+    #- docker exec docker_container lcov --remove coverage.info 'catch.hpp' --output-file coverage.info
+
+#before_script:
+#    - mkdir docker_container
+#    - cd docker_container
+#    - MODULES="-DENABLE_METAMODEL=TRUE -DENABLE_OPTIMIZE=TRUE -DENABLE_ARPACK=TRUE -DENABLE_GEOMETRYCONCRETE=TRUE -DENABLE_MPI=TRUE"
+#    - BUILD_OPTIONS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_OPENMP=$OPENMP -DENABLE_COVERAGE=$COVERAGE -DENABLE_EXAMPLES=$EXAMPLES $MODULES"
+#    - CXX=clang++ cmake $BUILD_OPTIONS $OPTIONS ..
+#script:
+#    - make -j2 unit
