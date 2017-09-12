@@ -44,10 +44,7 @@ matrix:
 
 install: ci/install.sh
 
-before_script:
-    - mkdir $BUILD_DIR
-    - cd $BUILD_DIR
-    - cmake $CMAKE_FLAGS ..
+before_script: ci/before_script.sh
 
 script:
     - make -j2 && ctest --output-on-failure
