@@ -7,6 +7,9 @@ if [[ "${CI_TARGET}" == lint ]]; then
   exit
 fi
 
-mkdir "${BUILD_DIR}"
-cd "${BUILD_DIR}"
+echo "${TRAVIS_BUILD_DIR}"
+echo "${BUILD_DIR}"
+echo "${CMAKE_FLAGS}"
+mkdir build
+cd build
 cmake "${CMAKE_FLAGS}" ..
