@@ -12,13 +12,6 @@ class Logger;
 class ElementBase;
 class IPConstitutiveLawBase;
 
-namespace Constitutive
-{
-enum class ePhaseFieldEnergyDecomposition;
-
-} // namespace Constitutive
-
-
 //! \class  PhaseField
 //! \author Philip Huschke
 //! \date   June 14, 2016
@@ -35,26 +28,24 @@ enum class ePhaseFieldEnergyDecomposition;
 class PhaseField : public ConstitutiveBase
 {
 public:
-    //! @brief      Constructor
-    //! @param[in]  rYoungsModulus Young's Modulus
-    //! @param[in]  rPoissonsRatio Poisson's Ratio
-    //! @param[in]  rLengthScaleParameter Parameter that corresponds to the band-width of the diffusive crack
-    //! @param[in]  rFractureEnergy Fracture energy/critical energy release rate
-    //! @param[in]  rArtificialViscosity Parameter to improve robustness of the model (non-physical)
-    //! @param[in]  rEnergyDecomposition Decomposition of the elastic energy density \f$\psi_0 = \psi_0^+ + \psi_0^-\f$
-    PhaseField(const double rYoungsModulus, const double rPoissonsRatio, const double rLengthScaleParameter,
-               const double rFractureEnergy, const double rArtificialViscosity,
-               const Constitutive::ePhaseFieldEnergyDecomposition rEnergyDecomposition);
-
-    typedef double StaticDataType;
+    using StaticDataType = double;
     using Data = typename Constitutive::StaticData::DataContainer<double>;
+
+    //! @brief      Constructor
+    //! @param[in]  youngsModulus Young's Modulus
+    //! @param[in]  poissonsRatio Poisson's Ratio
+    //! @param[in]  lengthScaleParameter Parameter that corresponds to the band-width of the diffusive crack
+    //! @param[in]  fractureEnergy Fracture energy/critical energy release rate
+    //! @param[in]  artificialViscosity Parameter to improve robustness of the model (non-physical)
+    PhaseField(double youngsModulus, double poissonsRatio, double lengthScaleParameter,
+               double fractureEnergy, double artificialViscosity);
 
     //! @brief creates corresponding IPConstitutiveLaw
     std::unique_ptr<Constitutive::IPConstitutiveLawBase> CreateIPLaw() override;
 
     ConstitutiveInputMap GetConstitutiveInputs(const ConstitutiveOutputMap& rConstitutiveOutput) const override;
 
-    //! @brief Evaluate the constitutive law in 1D
+    //! @brief Evaluate the constitutive law
     //! @param[in] rConstitutiveInput Input to the constitutive law (strain, temp gradient etc.)
     //! @param[out] rConstitutiveOutput Output to the constitutive law (stress, stiffness, heat flux etc.)
     //! @param[in] rStaticData static data
@@ -62,37 +53,22 @@ public:
     void Evaluate(const ConstitutiveInputMap& rConstitutiveInput, const ConstitutiveOutputMap& rConstitutiveOutput,
                   Data& rStaticData);
 
-    double Evaluate2DAnisotropicSpectralDecomposition(const double oldEnergyDensity,
-                                                      const ConstitutiveInputMap& rConstitutiveInput,
-                                                      const ConstitutiveOutputMap& rConstitutiveOutput);
-
-    double Evaluate2DIsotropic(const double oldEnergyDensity, const ConstitutiveInputMap& rConstitutiveInput,
-                               const ConstitutiveOutputMap& rConstitutiveOutput);
-
-    //! @brief calculates the error of the extrapolation
-    //! @param rElement ... element
-    //! @param rIp ... integration point
-    //! @param rConstitutiveInput ... input to the constitutive law (strain, temp gradient etc.)
-    //! @return ... error of the extrapolation
-    double CalculateStaticDataExtrapolationError(ElementBase& rElement, int rIp,
-                                                 const ConstitutiveInputMap& rConstitutiveInput) const;
-
     //! @brief Determines which submatrices of a multi-doftype problem can be solved by the constitutive law
     //! @param rDofRow row dof
     //! @param rDofCol column dof
     //! @param rTimeDerivative time derivative
-    virtual bool CheckDofCombinationComputable(Node::eDof rDofRow, Node::eDof rDofCol,
+    bool CheckDofCombinationComputable(Node::eDof rDofRow, Node::eDof rDofCol,
                                                int rTimeDerivative) const override;
 
     //! @brief Gets a parameter of the constitutive law which is selected by an enum
     //! @param rIdentifier ... Enum to identify the requested parameter
     //! @return ... value of the requested variable
-    virtual double GetParameterDouble(Constitutive::eConstitutiveParameter rIdentifier) const override;
+    double GetParameterDouble(Constitutive::eConstitutiveParameter rIdentifier) const override;
 
     //! @brief Sets a parameter of the constitutive law which is selected by an enum
     //! @param rIdentifier ... Enum to identify the requested parameter
     //! @param rValue ... new value for requested variable
-    virtual void SetParameterDouble(Constitutive::eConstitutiveParameter rIdentifier, double rValue) override;
+    void SetParameterDouble(Constitutive::eConstitutiveParameter rIdentifier, double rValue) override;
 
     //! @brief Gets the type of constitutive relationship
     //! @return Type of constitutive relationship
@@ -114,6 +90,8 @@ public:
         return false;
     }
 
+    double Evaluate2DIsotropic(double oldEnergyDensity, const ConstitutiveInputMap& rConstitutiveInput,
+                               const ConstitutiveOutputMap& rConstitutiveOutput);
 
 protected:
     //! @brief Young's modulus \f$ E \f$
@@ -137,18 +115,5 @@ protected:
     //! @brief Second Lame parameter \f$ \mu \f$
     const double mLameMu;
 
-    //! @brief Type of degradation function
-    const Constitutive::ePhaseFieldEnergyDecomposition mEnergyDecomposition;
-
-private:
-    // template this function over dimension and reduce the number of input arguments once its working
-    double CalculateComponentsSpectralDecompositionDStressDStrain(
-            int rI, int rJ, int rK, int rL,
-            const Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double, 2, 2>>& rEigenSolver,
-            std::function<double(double, double)> rRampFunction, std::function<bool(double)> rStepFunction);
-
-    void
-    CalculateSpectralDecompositionDStressDStrain(ConstitutiveIOBase& tangent, const double factor,
-                                                 const Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d>& eigenSolver);
 };
 } // namespace NuTo

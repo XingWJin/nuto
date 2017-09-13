@@ -54,7 +54,7 @@ double EvaluatePhaseFieldModel(const Eigen::Vector3d& rStrain, const double rCra
     tangentStressStrain.setZero();
 
     double oldEnergyDensity = 0.0;
-    rPhaseField->Evaluate2DAnisotropicSpectralDecomposition(oldEnergyDensity, myConstitutiveInputMap,
+    rPhaseField->Evaluate2DIsotropic(oldEnergyDensity, myConstitutiveInputMap,
                                                             myConstitutiveOutputMap);
 
     cout << "Outputs:" << endl;
@@ -74,11 +74,9 @@ BOOST_AUTO_TEST_CASE(check_d_stress_d_strain)
     constexpr double lengthScale = 0.76;
     constexpr double fractureEnergy = 2.71;
     constexpr double artificialViscosity = 0.13;
-    constexpr ePhaseFieldEnergyDecomposition energyDecomposition =
-            ePhaseFieldEnergyDecomposition::ANISOTROPIC_SPECTRAL_DECOMPOSITION;
 
     NuTo::PhaseField* phaseField = new NuTo::PhaseField(youngsModulus, poissonsRatio, lengthScale, fractureEnergy,
-                                                        artificialViscosity, energyDecomposition);
+                                                        artificialViscosity);
 
     Eigen::Vector3d strain;
     strain[0] = 0.;
