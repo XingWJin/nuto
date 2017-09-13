@@ -46,7 +46,6 @@ constexpr double poissonsRatio = 0.3;
 constexpr double lengthScaleParameter = 0.04; // mm
 constexpr double fractureEnergy = 2.7; // N/mm
 constexpr double artificialViscosity = 0.01; // Ns/mm^2
-constexpr ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ISOTROPIC;
 
 constexpr bool automaticTimeStepping = true;
 constexpr double timeStep = 1.e-3;
@@ -193,7 +192,7 @@ void AssignMaterial(NuTo::StructureFeti& structure)
                           << "*********************************** \n\n";
 
     NuTo::ConstitutiveBase* phaseField = new NuTo::PhaseField(youngsModulus, poissonsRatio, lengthScaleParameter,
-                                                              fractureEnergy, artificialViscosity, energyDecomposition);
+                                                              fractureEnergy, artificialViscosity);
 
     int material00 = structure.AddConstitutiveLaw(phaseField);
 

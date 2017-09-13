@@ -225,6 +225,9 @@ double NuTo::PhaseField::Evaluate2DIsotropic(const double oldEnergyDensity,
     return oldEnergyDensity;
 }
 
+namespace NuTo
+{
+// template specialization needs an explicit namespace block...
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template <>
 void NuTo::PhaseField::Evaluate<1>(const ConstitutiveInputMap&, const ConstitutiveOutputMap&, Data&)
@@ -268,6 +271,7 @@ void NuTo::PhaseField::Evaluate<3>(const ConstitutiveInputMap&, const Constituti
 {
     throw Exception(__PRETTY_FUNCTION__, "Not implemented.");
 }
+}// namespace NuTo
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool NuTo::PhaseField::CheckDofCombinationComputable(Node::eDof rDofRow, Node::eDof rDofCol, int rTimeDerivative) const
