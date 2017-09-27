@@ -40,7 +40,7 @@ install: ci/install.sh
 before_script: ci/before_script.sh
 
 script:
-    #- make -j2 && ctest --output-on-failure
+    - make -j2 unit
 #after_success:
 #    - cd ..
 #    - ./scripts/upload_coverage.sh
