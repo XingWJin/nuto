@@ -14,16 +14,20 @@ os: linux
 
 env:
   global:
+    - COVERAGE=FALSE
     - BUILD_DIR="$TRAVIS_BUILD_DIR/build"
     - CMAKE_FLAGS="-DENABLE_OPENMP=TRUE -DENABLE_COVERAGE=FALSE EXAMPLES=TRUE -DENABLE_METAMODEL=TRUE -DENABLE_OPTIMIZE=TRUE -DENABLE_ARPACK=TRUE -DENABLE_GEOMETRYCONCRETE=TRUE -DENABLE_MPI=TRUE"
 
 jobs:
   include:
+      # lint stage, move to bottom later
+    - stage: lint
+      env: CI_TARGET=lint
       # unit test stage
     - stage: unittest
-      compiler: g++
+      compiler: g++-6
       env: CI_TARGET=unit CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS"
-    - compiler: g++
+    - compiler: g++-6
       env: CI_TARGET=unit CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Debug $CMAKE_FLAGS"
     - compiler: clang++
       env: CI_TARGET=unit CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS"
@@ -31,16 +35,14 @@ jobs:
       env: CI_TARGET=unit CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Debug $CMAKE_FLAGS"
       # integration tests & examples
     - stage: build
-      compiler: g++
+      compiler: g++-6
       env: CI_TARGET=test CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS"
-    - compiler: g++
+    - compiler: g++-6
       env: CI_TARGET=test CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Debug $CMAKE_FLAGS"
     - compiler: clang++
       env: CI_TARGET=test CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS"
     - compiler: clang++
-      env: CI_TARGET=test CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Debug $CMAKE_FLAGS"
-    - stage: lint
-      env: CI_TARGET=lint
+      env: CI_TARGET=test CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Debug $CMAKE_FLAGS -DENABLE_COVERAGE=TRUE" COVERAGE=TRUE
   allow_failures:
     - env: CI_TARGET=lint
   fast_finish: true
