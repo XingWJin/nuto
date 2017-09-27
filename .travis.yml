@@ -20,9 +20,6 @@ env:
 
 jobs:
   include:
-      # lint stage, move to bottom later
-    - stage: lint
-      env: CI_TARGET=lint
       # unit test stage
     - stage: unittest
       compiler: g++-6
@@ -34,8 +31,8 @@ jobs:
     - compiler: clang++
       env: CI_TARGET=unit CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Debug $CMAKE_FLAGS"
       # integration tests & examples
-    - stage: build
-      compiler: g++-6
+    #- stage: build
+    - compiler: g++-6
       env: CI_TARGET=test CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS"
     - compiler: g++-6
       env: CI_TARGET=test CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Debug $CMAKE_FLAGS"
@@ -43,6 +40,9 @@ jobs:
       env: CI_TARGET=test CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS"
     - compiler: clang++
       env: CI_TARGET=test CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Debug $CMAKE_FLAGS -DENABLE_COVERAGE=TRUE" COVERAGE=TRUE
+      # lint stage
+    #- stage: lint
+    - env: CI_TARGET=lint
   allow_failures:
     - env: CI_TARGET=lint
   fast_finish: true
