@@ -4,50 +4,43 @@ dist: trusty
 services: docker
 os: linux
 
-notifications:
-    webhooks:
-        urls:
-            - "https://scalar.vector.im/api/neb/services/hooks/dHJhdmlzLWNpLyU0MFBzaXJ1cyUzQW1hdHJpeC5vcmcvJTIxZG9KWEFCclp5VVBlV0Jmb0ZYJTNBbWF0cml4Lm9yZw"
-        on_success: change  # always|never|change
-        on_failure: always
-        on_start: never
+# notifications:
+#    webhooks:
+#        urls:
+#            - "https://scalar.vector.im/api/neb/services/hooks/dHJhdmlzLWNpLyU0MFBzaXJ1cyUzQW1hdHJpeC5vcmcvJTIxZG9KWEFCclp5VVBlV0Jmb0ZYJTNBbWF0cml4Lm9yZw"
+#        on_success: change  # always|never|change
+#        on_failure: always
+#        on_start: never
 
 env:
   global:
     - CI_TARGET=test
     - BUILD_DIR="$TRAVIS_BUILD_DIR/build"
-    - CMAKE_FLAGS = "-DENABLE_OPENMP=TRUE -DENABLE_COVERAGE=FALSE EXAMPLES=TRUE -DENABLE_METAMODEL=TRUE -DENABLE_OPTIMIZE=TRUE -DENABLE_ARPACK=TRUE -DENABLE_GEOMETRYCONCRETE=TRUE -DENABLE_MPI=TRUE"
+    - CMAKE_FLAGS="-DENABLE_OPENMP=TRUE -DENABLE_COVERAGE=FALSE EXAMPLES=TRUE -DENABLE_METAMODEL=TRUE -DENABLE_OPTIMIZE=TRUE -DENABLE_ARPACK=TRUE -DENABLE_GEOMETRYCONCRETE=TRUE -DENABLE_MPI=TRUE"
 
 jobs:
   include:
     - stage: build
       compiler: g++
-      env: CMAKE_FLAGS = "-DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS"
-    - env: CMAKE_FLAGS = "-DCMAKE_BUILD_TYPE=Debug $CMAKE_FLAGS"
+      env: CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS"
+    - compiler: g++
+      env: CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Debug $CMAKE_FLAGS"
     - compiler: clang++
-      env: CMAKE_FLAGS = "-DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS"
-    - env: CMAKE_FLAGS = "-DCMAKE_BUILD_TYPE=Debug $CMAKE_FLAGS"
+      env: CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS"
+    - compiler: clang++
+      env: CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Debug $CMAKE_FLAGS"
     - stage: lint
       env: CI_TARGET=lint
   allow_failures:
     - env: CI_TARGET=lint
   fast_finish: true
 
-env:
-    - BUILD_TYPE=Release OPENMP=TRUE  COVERAGE=FALSE EXAMPLES=TRUE
-    - BUILD_TYPE=Release OPENMP=FALSE COVERAGE=FALSE EXAMPLES=TRUE
-    - BUILD_TYPE=Debug   OPENMP=FALSE COVERAGE=TRUE  EXAMPLES=FALSE
-matrix:
-    exclude:
-        - compiler: clang
-          env: BUILD_TYPE=Debug   OPENMP=FALSE COVERAGE=TRUE  EXAMPLES=FALSE
-
 install: ci/install.sh
 
 before_script: ci/before_script.sh
 
 script:
-    - make -j2 && ctest --output-on-failure
+    #- make -j2 && ctest --output-on-failure
 #after_success:
 #    - cd ..
 #    - ./scripts/upload_coverage.sh
