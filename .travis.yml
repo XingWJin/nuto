@@ -35,8 +35,8 @@ script:
     - docker exec dock mkdir build && cd build
     - docker exec dock cmake $BUILD_OPTIONS ../project
     - docker exec dock make -j2 unit
-    - docker exec dock make -j2
-    - docker exec dock ctest --output-on-failure
+    #- docker exec dock make -j2
+    #- docker exec dock ctest --output-on-failure
 
 after_success:
     - cd ..
